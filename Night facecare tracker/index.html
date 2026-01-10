@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Assistant Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E293B',
+                        accent: '#10B981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .streak-glow {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass-effect sticky top-0 z-50 p-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary">Personal Assistant</h1>
+            <div class="flex space-x-4">
+                <button onclick="showSection('dashboard')" class="nav-btn px-4 py-2 rounded-lg bg-primary text-white">Dashboard</button>
+                <button onclick="showSection('skincare')" class="nav-btn px-4 py-2 rounded-lg hover:bg-gray-700">Skincare</button>
+                <button onclick="showSection('hydration')" class="nav-btn px-4 py-2 rounded-lg hover:bg-gray-700">Hydration</button>
+                <button onclick="showSection('breaks')" class="nav-btn px-4 py-2 rounded-lg hover:bg-gray-700">Breaks</button>
+                <button onclick="showSection('sleep')" class="nav-btn px-4 py-2 rounded-lg hover:bg-gray-700">Sleep</button>
+                <button onclick="showSection('journal')" class="nav-btn px-4 py-2 rounded-lg hover:bg-gray-700">Journal</button>
+                <button onclick="showSection('tasks')" class="nav-btn px-4 py-2 rounded-lg hover:bg-gray-700">Tasks</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-6">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section fade-in">
+            <h2 class="text-3xl font-bold mb-6">Dashboard Overview</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Skincare Card -->
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="mr-2">🌙</span> Night Skincare
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Today's Progress:</span>
+                            <span id="skincare-progress">0/0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Current Streak:</span>
+                            <span id="skincare-streak" class="text-accent font-bold">0 days</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div id="skincare-bar" class="bg-accent h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hydration Card -->
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="mr-2">💧</span> Hydration
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Today:</span>
+                            <span id="water-count">0/8 glasses</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Weekly Avg:</span>
+                            <span id="water-avg">0 glasses</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div id="water-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen Breaks Card -->
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="mr-2">👁️</span> Screen Breaks
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Today's Breaks:</span>
+                            <span id="breaks-count">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Next Break:</span>
+                            <span id="next-break">--:--</span>
+                        </div>
+                        <button onclick="takeBreak()" class="w-full bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg transition-colors">
+                            Take Break Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sleep Card -->
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="mr-2">😴</span> Sleep
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Last Night:</span>
+                            <span id="last-sleep">-- hours</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Weekly Avg:</span>
+                            <span id="sleep-avg">-- hours</span>
+                        </div>
+                        <button onclick="showSection('sleep')" class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+                            Log Sleep
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Journal Card -->
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="mr-2">📝</span> Journal
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Entries This Week:</span>
+                            <span id="journal-count">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Current Mood:</span>
+                            <span id="current-mood">😐</span>
+                        </div>
+                        <button onclick="showSection('journal')" class="w-full bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded-lg transition-colors">
+                            Write Entry
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tasks Card -->
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="mr-2">✅</span> Tasks
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Today:</span>
+                            <span id="tasks-progress">0/0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>This Week:</span>
+                            <span id="tasks-week">0/0</span>
+                        </div>
+                        <button onclick="showSection('tasks')" class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                            Manage Tasks
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skincare Section -->
+        <section id="skincare" class="section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6">Night Skincare Routine</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Today's Routine</h3>
+                    <div id="skincare-steps" class="space-y-3">
+                        <!-- Steps will be populated by JS -->
+                    </div>
+                    <button onclick="addSkincareStep()" class="mt-4 bg-primary hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                        Add Step
+                    </button>
+                </div>
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Skin Log</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Skin Condition Today:</label>
+                            <select id="skin-condition" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Notes:</label>
+                            <textarea id="skin-notes" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 h-20" placeholder="Any observations about your skin today..."></textarea>
+                        </div>
+                        <button onclick="saveSkinLog()" class="w-full bg-accent hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                            Save Log
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 glass-effect p-6 rounded-xl">
+                <h3 class="text-xl font-semibold mb-4">Progress Analytics</h3>
+                <canvas id="skincare-chart" width="400" height="200"></canvas>
+            </div>
+        </section>
+
+        <!-- Hydration Section -->
+        <section id="hydration" class="section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6">Hydration Tracker</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Today's Water Intake</h3>
+                    <div class="text-center mb-6">
+                        <div class="text-4xl font-bold text-blue-400" id="water-display">0/8</div>
+                        <div class="text-sm text-gray-400">glasses of water</div>
+                    </div>
+                    <div id="water-glasses" class="grid grid-cols-4 gap-4 mb-6">
+                        <!-- Water glasses will be populated by JS -->
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="addWater()" class="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                            Add Glass
+                        </button>
+                        <button onclick="resetWater()" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
+                            Reset Day
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Weekly Progress</h3>
+                    <canvas id="hydration-chart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen Breaks Section -->
+        <section id="breaks" class="section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6">Screen Break Reminders</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">20-20-20 Rule</h3>
+                    <div class="text-center mb-6">
+                        <div class="text-6xl mb-4">👁️</div>
+                        <div class="text-lg mb-2">Every 20 minutes</div>
+                        <div class="text-lg mb-2">Look at something 20 feet away</div>
+                        <div class="text-lg mb-4">For 20 seconds</div>
+                        <div id="break-timer" class="text-2xl font-bold text-yellow-400">20:00</div>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="startBreakTimer()" class="flex-1 bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg transition-colors">
+                            Start Timer
+                        </button>
+                        <button onclick="takeBreak()" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                            Take Break
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Break History</h3>
+                    <div id="break-history" class="space-y-2 max-h-64 overflow-y-auto">
+                        <!-- Break history will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sleep Section -->
+        <section id="sleep" class="section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6">Sleep Tracker</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Log Sleep</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Bedtime:</label>
+                            <input type="time" id="bedtime" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Wake Time:</label>
+                            <input type="time" id="waketime" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Sleep Quality:</label>
+                            <select id="sleep-quality" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Notes:</label>
+                            <textarea id="sleep-notes" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 h-20" placeholder="How did you sleep?"></textarea>
+                        </div>
+                        <button onclick="saveSleep()" class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+                            Save Sleep Log
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Sleep Analytics</h3>
+                    <canvas id="sleep-chart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Journal Section -->
+        <section id="journal" class="section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6">Personal Journal</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Today's Entry</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Mood:</label>
+                            <div class="flex space-x-2">
+                                <button onclick="setMood('😢')" class="mood-btn text-2xl p-2 rounded-lg hover:bg-gray-700">😢</button>
+                                <button onclick="setMood('😐')" class="mood-btn text-2xl p-2 rounded-lg hover:bg-gray-700">😐</button>
+                                <button onclick="setMood('🙂')" class="mood-btn text-2xl p-2 rounded-lg hover:bg-gray-700">🙂</button>
+                                <button onclick="setMood('😊')" class="mood-btn text-2xl p-2 rounded-lg hover:bg-gray-700">😊</button>
+                                <button onclick="setMood('😄')" class="mood-btn text-2xl p-2 rounded-lg hover:bg-gray-700">😄</button>
+                            </div>
+                            <div id="selected-mood" class="mt-2 text-lg">Selected: 😐</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Journal Entry:</label>
+                            <textarea id="journal-entry" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 h-32" placeholder="What's on your mind today?"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Gratitude (3 things):</label>
+                            <textarea id="gratitude" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 h-20" placeholder="1. 
+2. 
+3. "></textarea>
+                        </div>
+                        <button onclick="saveJournal()" class="w-full bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded-lg transition-colors">
+                            Save Entry
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Recent Entries</h3>
+                    <div class="mb-4">
+                        <input type="text" id="journal-search" placeholder="Search entries..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" onkeyup="searchJournal()">
+                    </div>
+                    <div id="journal-history" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- Journal entries will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Section -->
+        <section id="tasks" class="section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6">Task Planner</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Add New Task</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Task:</label>
+                            <input type="text" id="new-task" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2" placeholder="Enter task description">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Priority:</label>
+                            <select id="task-priority" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Due Date:</label>
+                            <input type="date" id="task-date" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                        </div>
+                        <button onclick="addTask()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                            Add Task
+                        </button>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">Task List</h3>
+                    <div class="flex space-x-2 mb-4">
+                        <button onclick="filterTasks('all')" class="filter-btn px-3 py-1 rounded-lg bg-primary text-white text-sm">All</button>
+                        <button onclick="filterTasks('today')" class="filter-btn px-3 py-1 rounded-lg hover:bg-gray-700 text-sm">Today</button>
+                        <button onclick="filterTasks('week')" class="filter-btn px-3 py-1 rounded-lg hover:bg-gray-700 text-sm">This Week</button>
+                        <button onclick="filterTasks('high')" class="filter-btn px-3 py-1 rounded-lg hover:bg-gray-700 text-sm">High Priority</button>
+                    </div>
+                    <div id="task-list" class="space-y-2 max-h-96 overflow-y-auto">
+                        <!-- Tasks will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Break Notification Modal -->
+    <div id="break-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="glass-effect p-8 rounded-xl max-w-md mx-4">
+            <h3 class="text-2xl font-bold mb-4 text-center">Time for a Break! 👁️</h3>
+            <p class="text-center mb-6">Look at something 20 feet away for 20 seconds</p>
+            <div id="break-countdown" class="text-4xl font-bold text-center mb-6 text-yellow-400">20</div>
+            <div class="flex space-x-4">
+                <button onclick="startBreakCountdown()" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                    Start Break
+                </button>
+                <button onclick="closeBreakModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
+                    Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const AppState = {
+            currentSection: 'dashboard',
+            data: {
+                skincare: {
+                    steps: ['Remove makeup', 'Cleanse face', 'Apply toner', 'Moisturize', 'Apply night cream'],
+                    completed: [],
+                    streak: 0,
+                    logs: []
+                },
+                hydration: {
+                    daily: 0,
+                    goal: 8,
+                    history: []
+                },
+                breaks: {
+                    count: 0,
+                    history: [],
+                    timer: null,
+                    nextBreak: null
+                },
+                sleep: {
+                    logs: []
+                },
+                journal: {
+                    entries: [],
+                    currentMood: '😐'
+                },
+                tasks: {
+                    list: [],
+                    filter: 'all'
+                }
+            }
+        };
+
+        // Data Management
+        class DataManager {
+            static save() {
+                localStorage.setItem('personalAssistantData', JSON.stringify(AppState.data));
+            }
+
+            static load() {
+                const saved = localStorage.getItem('personalAssistantData');
+                if (saved) {
+                    try {
+                        AppState.data = { ...AppState.data, ...JSON.parse(saved) };
+                    } catch (e) {
+                        console.error('Error loading data:', e);
+                    }
+                }
+            }
+
+            static reset() {
+                localStorage.removeItem('personalAssistantData');
+                location.reload();
+            }
+        }
+
+        // Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.remove('hidden');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-primary');
+                btn.classList.add('hover:bg-gray-700');
+            });
+            
+            event.target.classList.add('bg-primary');
+            event.target.classList.remove('hover:bg-gray-700');
+            
+            AppState.currentSection = sectionName;
+            
+            // Load section-specific data
+            switch(sectionName) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'skincare':
+                    loadSkincareSection();
+                    break;
+                case 'hydration':
+                    loadHydrationSection();
+                    break;
+                case 'breaks':
+                    loadBreaksSection();
+                    break;
+                case 'sleep':
+                    loadSleepSection();
+                    break;
+                case 'journal':
+                    loadJournalSection();
+                    break;
+                case 'tasks':
+                    loadTasksSection();
+                    break;
+            }
+        }
+
+        // Dashboard Updates
+        function updateDashboard() {
+            // Skincare progress
+            const skincareCompleted = AppState.data.skincare.completed.length;
+            const skincareTotal = AppState.data.skincare.steps.length;
+            document.getElementById('skincare-progress').textContent = `${skincareCompleted}/${skincareTotal}`;
+            document.getElementById('skincare-streak').textContent = `${AppState.data.skincare.streak} days`;
+            document.getElementById('skincare-bar').style.width = `${(skincareCompleted / skincareTotal) * 100}%`;
+
+            // Hydration
+            document.getElementById('water-count').textContent = `${AppState.data.hydration.daily}/${AppState.data.hydration.goal} glasses`;
+            document.getElementById('water-bar').style.width = `${(AppState.data.hydration.daily / AppState.data.hydration.goal) * 100}%`;
+            
+            // Calculate weekly average
+            const weeklyAvg = AppState.data.hydration.history.slice(-7).reduce((sum, day) => sum + day.count, 0) / 7;
+            document.getElementById('water-avg').textContent = `${Math.round(weeklyAvg)} glasses`;
+
+            // Screen breaks
+            document.getElementById('breaks-count').textContent = AppState.data.breaks.count;
+            
+            // Sleep
+            if (AppState.data.sleep.logs.length > 0) {
+                const lastSleep = AppState.data.sleep.logs[AppState.data.sleep.logs.length - 1];
+                document.getElementById('last-sleep').textContent = `${lastSleep.duration} hours`;
+            }
+
+            // Journal
+            const thisWeekEntries = AppState.data.journal.entries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return entryDate > weekAgo;
+            }).length;
+            document.getElementById('journal-count').textContent = thisWeekEntries;
+            document.getElementById('current-mood').textContent = AppState.data.journal.currentMood;
+
+            // Tasks
+            const todayTasks = AppState.data.tasks.list.filter(task => {
+                const taskDate = new Date(task.date);
+                const today = new Date();
+                return taskDate.toDateString() === today.toDateString();
+            });
+            const todayCompleted = todayTasks.filter(task => task.completed).length;
+            document.getElementById('tasks-progress').textContent = `${todayCompleted}/${todayTasks.length}`;
+
+            const thisWeekTasks = AppState.data.tasks.list.filter(task => {
+                const taskDate = new Date(task.date);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return taskDate > weekAgo;
+            });
+            const weekCompleted = thisWeekTasks.filter(task => task.completed).length;
+            document.getElementById('tasks-week').textContent = `${weekCompleted}/${thisWeekTasks.length}`;
+        }
+
+        // Skincare Functions
+        function loadSkincareSection() {
+            const stepsContainer = document.getElementById('skincare-steps');
+            stepsContainer.innerHTML = '';
+            
+            AppState.data.skincare.steps.forEach((step, index) => {
+                const isCompleted = AppState.data.skincare.completed.includes(index);
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'flex items-center space-x-3 p-3 rounded-lg bg-gray-800';
+                stepDiv.innerHTML = `
+                    <input type="checkbox" ${isCompleted ? 'checked' : ''} 
+                           onchange="toggleSkincareStep(${index})" 
+                           class="w-5 h-5 text-accent bg-gray-700 border-gray-600 rounded">
+                    <span class="${isCompleted ? 'line-through text-gray-400' : ''}">${step}</span>
+                    <button onclick="removeSkincareStep(${index})" class="ml-auto text-red-400 hover:text-red-300">×</button>
+                `;
+                stepsContainer.appendChild(stepDiv);
+            });
+
+            // Load chart
+            loadSkincareChart();
+        }
+
+        function toggleSkincareStep(index) {
+            const completedIndex = AppState.data.skincare.completed.indexOf(index);
+            if (completedIndex > -1) {
+                AppState.data.skincare.completed.splice(completedIndex, 1);
+            } else {
+                AppState.data.skincare.completed.push(index);
+            }
+            
+            // Check if all steps completed
+            if (AppState.data.skincare.completed.length === AppState.data.skincare.steps.length) {
+                AppState.data.skincare.streak++;
+                showNotification('🎉 Skincare routine completed! Streak: ' + AppState.data.skincare.streak + ' days');
+            }
+            
+            DataManager.save();
+            loadSkincareSection();
+            updateDashboard();
+        }
+
+        function addSkincareStep() {
+            const step = prompt('Enter new skincare step:');
+            if (step) {
+                AppState.data.skincare.steps.push(step);
+                DataManager.save();
+                loadSkincareSection();
+            }
+        }
+
+        function removeSkincareStep(index) {
+            if (confirm('Remove this step?')) {
+                AppState.data.skincare.steps.splice(index, 1);
+                AppState.data.skincare.completed = AppState.data.skincare.completed.filter(i => i !== index);
+                DataManager.save();
+                loadSkincareSection();
+            }
+        }
+
+        function saveSkinLog() {
+            const condition = document.getElementById('skin-condition').value;
+            const notes = document.getElementById('skin-notes').value;
+            
+            AppState.data.skincare.logs.push({
+                date: new Date().toISOString(),
+                condition,
+                notes
+            });
+            
+            DataManager.save();
+            showNotification('Skin log saved!');
+            document.getElementById('skin-notes').value = '';
+        }
+
+        function loadSkincareChart() {
+            const ctx = document.getElementById('skincare-chart').getContext('2d');
+            const last7Days = [];
+            const completionData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString());
+                // Simulate completion data (in real app, this would come from stored data)
+                completionData.push(Math.random() * 100);
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Routine Completion %',
+                        data: completionData,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Hydration Functions
+        function loadHydrationSection() {
+            updateWaterDisplay();
+            loadHydrationChart();
+        }
+
+        function updateWaterDisplay() {
+            document.getElementById('water-display').textContent = `${AppState.data.hydration.daily}/${AppState.data.hydration.goal}`;
+            
+            const glassesContainer = document.getElementById('water-glasses');
+            glassesContainer.innerHTML = '';
+            
+            for (let i = 0; i < AppState.data.hydration.goal; i++) {
+                const glass = document.createElement('div');
+                glass.className = `text-4xl cursor-pointer transition-all duration-300 ${i < AppState.data.hydration.daily ? 'text-blue-400' : 'text-gray-600'}`;
+                glass.innerHTML = '💧';
+                glass.onclick = () => setWaterCount(i + 1);
+                glassesContainer.appendChild(glass);
+            }
+        }
+
+        function addWater() {
+            if (AppState.data.hydration.daily < AppState.data.hydration.goal) {
+                AppState.data.hydration.daily++;
+                if (AppState.data.hydration.daily === AppState.data.hydration.goal) {
+                    showNotification('🎉 Daily hydration goal reached!');
+                }
+                DataManager.save();
+                updateWaterDisplay();
+                updateDashboard();
+            }
+        }
+
+        function setWaterCount(count) {
+            AppState.data.hydration.daily = count;
+            DataManager.save();
+            updateWaterDisplay();
+            updateDashboard();
+        }
+
+        function resetWater() {
+            AppState.data.hydration.daily = 0;
+            DataManager.save();
+            updateWaterDisplay();
+            updateDashboard();
+        }
+
+        function loadHydrationChart() {
+            const ctx = document.getElementById('hydration-chart').getContext('2d');
+            const last7Days = [];
+            const hydrationData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString());
+                
+                // Get actual data or simulate
+                const dayData = AppState.data.hydration.history.find(h => h.date === date.toDateString());
+                hydrationData.push(dayData ? dayData.count : Math.floor(Math.random() * 8));
+            }
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Glasses of Water',
+                        data: hydrationData,
+                        backgroundColor: '#3B82F6',
+                        borderColor: '#1D4ED8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Screen Break Functions
+        function loadBreaksSection() {
+            updateBreakHistory();
+            if (!AppState.data.breaks.timer) {
+                startBreakTimer();
+            }
+        }
+
+        function startBreakTimer() {
+            if (AppState.data.breaks.timer) {
+                clearInterval(AppState.data.breaks.timer);
+            }
+            
+            let minutes = 20;
+            let seconds = 0;
+            
+            AppState.data.breaks.timer = setInterval(() => {
+                if (seconds === 0) {
+                    if (minutes === 0) {
+                        showBreakNotification();
+                        minutes = 20;
+                    } else {
+                        minutes--;
+                        seconds = 59;
+                    }
+                } else {
+                    seconds--;
+                }
+                
+                const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('break-timer').textContent = display;
+                document.getElementById('next-break').textContent = display;
+            }, 1000);
+        }
+
+        function takeBreak() {
+            AppState.data.breaks.count++;
+            AppState.data.breaks.history.push({
+                time: new Date().toLocaleTimeString(),
+                date: new Date().toDateString()
+            });
+            
+            DataManager.save();
+            updateBreakHistory();
+            updateDashboard();
+            showBreakModal();
+        }
+
+        function showBreakNotification() {
+            showNotification('Time for a screen break! 👁️');
+            showBreakModal();
+        }
+
+        function showBreakModal() {
+            document.getElementById('break-modal').classList.remove('hidden');
+            document.getElementById('break-modal').classList.add('flex');
+        }
+
+        function closeBreakModal() {
+            document.getElementById('break-modal').classList.add('hidden');
+            document.getElementById('break-modal').classList.remove('flex');
+        }
+
+        function startBreakCountdown() {
+            let countdown = 20;
+            document.getElementById('break-countdown').textContent = countdown;
+            
+            const countdownTimer = setInterval(() => {
+                countdown--;
+                document.getElementById('break-countdown').textContent = countdown;
+                
+                if (countdown === 0) {
+                    clearInterval(countdownTimer);
+                    closeBreakModal();
+                    showNotification('Great job! Break completed 👍');
+                }
+            }, 1000);
+        }
+
+        function updateBreakHistory() {
+            const historyContainer = document.getElementById('break-history');
+            historyContainer.innerHTML = '';
+            
+            AppState.data.breaks.history.slice(-10).reverse().forEach(breakItem => {
+                const breakDiv = document.createElement('div');
+                breakDiv.className = 'p-2 bg-gray-800 rounded-lg text-sm';
+                breakDiv.innerHTML = `
+                    <div class="font-medium">${breakItem.time}</div>
+                    <div class="text-gray-400">${breakItem.date}</div>
+                `;
+                historyContainer.appendChild(breakDiv);
+            });
+        }
+
+        // Sleep Functions
+        function loadSleepSection() {
+            loadSleepChart();
+        }
+
+        function saveSleep() {
+            const bedtime = document.getElementById('bedtime').value;
+            const waketime = document.getElementById('waketime').value;
+            const quality = document.getElementById('sleep-quality').value;
+            const notes = document.getElementById('sleep-notes').value;
+            
+            if (!bedtime || !waketime) {
+                showNotification('Please enter both bedtime and wake time');
+                return;
+            }
+            
+            // Calculate duration
+            const bed = new Date(`2000-01-01 ${bedtime}`);
+            const wake = new Date(`2000-01-01 ${waketime}`);
+            if (wake < bed) wake.setDate(wake.getDate() + 1);
+            
+            const duration = (wake - bed) / (1000 * 60 * 60);
+            
+            AppState.data.sleep.logs.push({
+                date: new Date().toDateString(),
+                bedtime,
+                waketime,
+                duration: duration.toFixed(1),
+                quality,
+                notes
+            });
+            
+            DataManager.save();
+            showNotification('Sleep log saved!');
+            
+            // Clear form
+            document.getElementById('bedtime').value = '';
+            document.getElementById('waketime').value = '';
+            document.getElementById('sleep-notes').value = '';
+            
+            updateDashboard();
+            loadSleepChart();
+        }
+
+        function loadSleepChart() {
+            const ctx = document.getElementById('sleep-chart').getContext('2d');
+            const last7Days = [];
+            const sleepData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString());
+                
+                const dayLog = AppState.data.sleep.logs.find(log => log.date === date.toDateString());
+                sleepData.push(dayLog ? parseFloat(dayLog.duration) : 0);
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Hours of Sleep',
+                        data: sleepData,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 12,
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#374151' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Journal Functions
+        function loadJournalSection() {
+            loadJournalHistory();
+        }
+
+        function setMood(mood) {
+            AppState.data.journal.currentMood = mood;
+            document.getElementById('selected-mood').textContent = `Selected: ${mood}`;
+            
+            // Update mood button styles
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('bg-primary');
+            });
+            event.target.classList.add('bg-primary');
+        }
+
+        function saveJournal() {
+            const entry = document.getElementById('journal-entry').value;
+            const gratitude = document.getElementById('gratitude').value;
+            
+            if (!entry.trim()) {
+                showNotification('Please write a journal entry');
+                return;
+            }
+            
+            AppState.data.journal.entries.push({
+                date: new Date().toISOString(),
+                mood: AppState.data.journal.currentMood,
+                entry,
+                gratitude
+            });
+            
+            DataManager.save();
+            showNotification('Journal entry saved!');
+            
+            // Clear form
+            document.getElementById('journal-entry').value = '';
+            document.getElementById('gratitude').value = '';
+            
+            loadJournalHistory();
+            updateDashboard();
+        }
+
+        function loadJournalHistory() {
+            const historyContainer = document.getElementById('journal-history');
+            historyContainer.innerHTML = '';
+            
+            AppState.data.journal.entries.slice(-10).reverse().forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'p-3 bg-gray-800 rounded-lg';
+                entryDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-400">${new Date(entry.date).toLocaleDateString()}</span>
+                        <span class="text-lg">${entry.mood}</span>
+                    </div>
+                    <div class="text-sm mb-2">${entry.entry.substring(0, 100)}${entry.entry.length > 100 ? '...' : ''}</div>
+                    ${entry.gratitude ? `<div class="text-xs text-green-400">Gratitude: ${entry.gratitude.substring(0, 50)}...</div>` : ''}
+                `;
+                historyContainer.appendChild(entryDiv);
+            });
+        }
+
+        function searchJournal() {
+            const query = document.getElementById('journal-search').value.toLowerCase();
+            const historyContainer = document.getElementById('journal-history');
+            
+            if (!query) {
+                loadJournalHistory();
+                return;
+            }
+            
+            const filtered = AppState.data.journal.entries.filter(entry => 
+                entry.entry.toLowerCase().includes(query) || 
+                entry.gratitude.toLowerCase().includes(query)
+            );
+            
+            historyContainer.innerHTML = '';
+            filtered.slice(-10).reverse().forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'p-3 bg-gray-800 rounded-lg';
+                entryDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-400">${new Date(entry.date).toLocaleDateString()}</span>
+                        <span class="text-lg">${entry.mood}</span>
+                    </div>
+                    <div class="text-sm mb-2">${entry.entry.substring(0, 100)}${entry.entry.length > 100 ? '...' : ''}</div>
+                    ${entry.gratitude ? `<div class="text-xs text-green-400">Gratitude: ${entry.gratitude.substring(0, 50)}...</div>` : ''}
+                `;
+                historyContainer.appendChild(entryDiv);
+            });
+        }
+
+        // Task Functions
+        function loadTasksSection() {
+            loadTaskList();
+        }
+
+        function addTask() {
+            const task = document.getElementById('new-task').value;
+            const priority = document.getElementById('task-priority').value;
+            const date = document.getElementById('task-date').value;
+            
+            if (!task.trim()) {
+                showNotification('Please enter a task description');
+                return;
+            }
+            
+            AppState.data.tasks.list.push({
+                id: Date.now(),
+                task,
+                priority,
+                date: date || new Date().toISOString().split('T')[0],
+                completed: false,
+                createdAt: new Date().toISOString()
+            });
+            
+            DataManager.save();
+            showNotification('Task added!');
+            
+            // Clear form
+            document.getElementById('new-task').value = '';
+            document.getElementById('task-date').value = '';
+            
+            loadTaskList();
+            updateDashboard();
+        }
+
+        function toggleTask(id) {
+            const task = AppState.data.tasks.list.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                DataManager.save();
+                loadTaskList();
+                updateDashboard();
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm('Delete this task?')) {
+                AppState.data.tasks.list = AppState.data.tasks.list.filter(t => t.id !== id);
+                DataManager.save();
+                loadTaskList();
+                updateDashboard();
+            }
+        }
+
+        function filterTasks(filter) {
+            AppState.data.tasks.filter = filter;
+            
+            // Update filter button styles
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-primary');
+                btn.classList.add('hover:bg-gray-700');
+            });
+            event.target.classList.add('bg-primary');
+            event.target.classList.remove('hover:bg-gray-700');
+            
+            loadTaskList();
+        }
+
+        function loadTaskList() {
+            const listContainer = document.getElementById('task-list');
+            listContainer.innerHTML = '';
+            
+            let filteredTasks = AppState.data.tasks.list;
+            
+            switch (AppState.data.tasks.filter) {
+                case 'today':
+                    const today = new Date().toISOString().split('T')[0];
+                    filteredTasks = filteredTasks.filter(task => task.date === today);
+                    break;
+                case 'week':
+                    const weekFromNow = new Date();
+                    weekFromNow.setDate(weekFromNow.getDate() + 7);
+                    filteredTasks = filteredTasks.filter(task => new Date(task.date) <= weekFromNow);
+                    break;
+                case 'high':
+                    filteredTasks = filteredTasks.filter(task => task.priority === 'high');
+                    break;
+            }
+            
+            filteredTasks.sort((a, b) => {
+                if (a.completed !== b.completed) return a.completed - b.completed;
+                const priorityOrder = { high: 3, medium: 2, low: 1 };
+                return priorityOrder[b.priority] - priorityOrder[a.priority];
+            });
+            
+            filteredTasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = `p-3 rounded-lg border-l-4 ${
+                    task.priority === 'high' ? 'border-red-500 bg-red-900/20' :
+                    task.priority === 'medium' ? 'border-yellow-500 bg-yellow-900/20' :
+                    'border-green-500 bg-green-900/20'
+                } ${task.completed ? 'opacity-50' : ''}`;
+                
+                taskDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                                   onchange="toggleTask(${task.id})" 
+                                   class="w-4 h-4 text-accent bg-gray-700 border-gray-600 rounded">
+                            <div>
+                                <div class="${task.completed ? 'line-through text-gray-400' : ''}">${task.task}</div>
+                                <div class="text-xs text-gray-400">Due: ${new Date(task.date).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs px-2 py-1 rounded-full ${
+                                task.priority === 'high' ? 'bg-red-600' :
+                                task.priority === 'medium' ? 'bg-yellow-600' :
+                                'bg-green-600'
+                            }">${task.priority}</span>
+                            <button onclick="deleteTask(${task.id})" class="text-red-400 hover:text-red-300">×</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(taskDiv);
+            });
+        }
+
+        // Utility Functions
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-accent text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function resetDailyData() {
+            const today = new Date().toDateString();
+            const lastReset = localStorage.getItem('lastReset');
+            
+            if (lastReset !== today) {
+                // Reset daily counters
+                AppState.data.skincare.completed = [];
+                AppState.data.hydration.daily = 0;
+                AppState.data.breaks.count = 0;
+                
+                // Save hydration history
+                AppState.data.hydration.history.push({
+                    date: lastReset || today,
+                    count: AppState.data.hydration.daily
+                });
+                
+                localStorage.setItem('lastReset', today);
+                DataManager.save();
+            }
+        }
+
+        // Initialize App
+        function initApp() {
+            DataManager.load();
+            resetDailyData();
+            updateDashboard();
+            
+            // Set today's date as default for task date input
+            document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
+            
+            // Start break timer
+            startBreakTimer();
+            
+            console.log('Personal Assistant App initialized');
+        }
+
+        // Start the app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
